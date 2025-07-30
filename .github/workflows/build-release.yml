@@ -12,9 +12,7 @@ on:
         required: false
         type: string
         default: '18'
-    secrets:
-      GITHUB_TOKEN:
-        required: true
+    secrets: inherit
 
 jobs:
   build-and-release:
