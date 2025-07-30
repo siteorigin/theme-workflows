@@ -1,0 +1,139 @@
+name: Reusable WordPress Theme Build and Release
+
+on:
+  workflow_call:
+    inputs:
+      theme-name:
+        description: 'Name of the theme (repository name)'
+        required: true
+        type: string
+      node-version:
+        description: 'Node.js version to use'
+        required: false
+        type: string
+        default: '18'
+    secrets:
+      GITHUB_TOKEN:
+        required: true
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout theme repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node-version }}
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Extract version from tag
+        id: version
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Version: $VERSION"
+      
+      - name: Compile SASS
+        run: |
+          if [ -d "sass" ]; then
+            npx sass sass:. --style=expanded --no-source-map
+            echo "SASS compiled"
+          else
+            echo "No SASS directory found, skipping"
+          fi
+      
+      - name: Minify JavaScript
+        run: |
+          if [ -d "js" ]; then
+            find js -name "*.js" ! -name "*.min.js" -type f | while read file; do
+              output="${file%.js}.min.js"
+              npx terser "$file" --compress --mangle --output "$output"
+              echo "Minified: $file -> $output"
+            done
+          else
+            echo "No JS directory found, skipping"
+          fi
+      
+      - name: Update version in style.css
+        run: |
+          if [ -f "style.css" ]; then
+            sed -i "s/Version: [0-9]\+\.[0-9]\+\.[0-9]\+/Version: ${{ steps.version.outputs.version }}/" style.css
+            echo "Updated version in style.css to ${{ steps.version.outputs.version }}"
+          fi
+      
+      - name: Create distribution directory
+        run: mkdir -p dist
+      
+      - name: Copy theme files for distribution
+        run: |
+          # Copy all files except those in .distignore
+          rsync -av --exclude-from='.distignore' ./ dist/${{ inputs.theme-name }}/
+          
+          # Remove any remaining development files
+          find dist/${{ inputs.theme-name }}/ -name "node_modules" -type d -exec rm -rf {} + 2>/dev/null || true
+          find dist/${{ inputs.theme-name }}/ -name ".git*" -exec rm -rf {} + 2>/dev/null || true
+          find dist/${{ inputs.theme-name }}/ -name "*.map" -delete 2>/dev/null || true
+      
+      - name: Create release ZIP
+        run: |
+          cd dist
+          zip -r ../${{ inputs.theme-name }}-${{ steps.version.outputs.version }}.zip ${{ inputs.theme-name }}/
+          cd ..
+          echo "Created: ${{ inputs.theme-name }}-${{ steps.version.outputs.version }}.zip"
+          ls -la *.zip
+      
+      - name: Generate changelog from commits
+        id: changelog
+        run: |
+          # Get commits since last tag
+          LAST_TAG=$(git describe --tags --abbrev=0 HEAD~1 2>/dev/null || echo "")
+          if [ -n "$LAST_TAG" ]; then
+            CHANGELOG=$(git log --pretty=format:"- %s" $LAST_TAG..HEAD)
+          else
+            CHANGELOG=$(git log --pretty=format:"- %s" HEAD~10..HEAD)
+          fi
+          
+          # Create multiline output
+          EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
+          echo "changelog<<$EOF" >> $GITHUB_OUTPUT
+          echo "## Changes in v${{ steps.version.outputs.version }}" >> $GITHUB_OUTPUT
+          echo "" >> $GITHUB_OUTPUT
+          echo "$CHANGELOG" >> $GITHUB_OUTPUT
+          echo "$EOF" >> $GITHUB_OUTPUT
+      
+      - name: Create GitHub Release
+        uses: actions/create-release@v1
+        id: create_release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: ${{ inputs.theme-name }} v${{ steps.version.outputs.version }}
+          body: ${{ steps.changelog.outputs.changelog }}
+          draft: false
+          prerelease: false
+      
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./${{ inputs.theme-name }}-${{ steps.version.outputs.version }}.zip
+          asset_name: ${{ inputs.theme-name }}-${{ steps.version.outputs.version }}.zip
+          asset_content_type: application/zip
+      
+      - name: Output release info
+        run: |
+          echo "✅ Release created successfully!"
+          echo "📦 Asset: ${{ inputs.theme-name }}-${{ steps.version.outputs.version }}.zip"
+          echo "🔗 Release URL: ${{ steps.create_release.outputs.html_url }}"
