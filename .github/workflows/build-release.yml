@@ -12,7 +12,6 @@ on:
         required: false
         type: string
         default: '18'
-    secrets: inherit
 
 jobs:
   build-and-release:
