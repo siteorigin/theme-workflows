@@ -44,11 +44,13 @@ jobs:
       
       - name: Compile SASS
         run: |
-          if [ -d "sass" ]; then
-            npx sass sass:. --style=expanded --no-source-map
-            echo "SASS compiled"
+          if [ -d "sass" ] && [ -f "sass/style.scss" ]; then
+            echo "Found SASS files, compiling..."
+            npx sass sass/style.scss:style.css --style=expanded --no-source-map
+            echo "SASS compiled: sass/style.scss -> style.css"
+            ls -la style.css
           else
-            echo "No SASS directory found, skipping"
+            echo "No SASS files found, skipping compilation"
           fi
       
       - name: Minify JavaScript
@@ -75,13 +77,31 @@ jobs:
       
       - name: Copy theme files for distribution
         run: |
-          # Copy all files except those in .distignore
-          rsync -av --exclude-from='.distignore' ./ dist/${{ inputs.theme-name }}/
+          echo "Contents of .distignore:"
+          cat .distignore
+          echo "---"
           
-          # Remove any remaining development files
-          find dist/${{ inputs.theme-name }}/ -name "node_modules" -type d -exec rm -rf {} + 2>/dev/null || true
-          find dist/${{ inputs.theme-name }}/ -name ".git*" -exec rm -rf {} + 2>/dev/null || true
-          find dist/${{ inputs.theme-name }}/ -name "*.map" -delete 2>/dev/null || true
+          # Copy all files except those in .distignore
+          if [ -f ".distignore" ]; then
+            rsync -av --exclude-from='.distignore' ./ dist/${{ inputs.theme-name }}/
+          else
+            # Fallback: manual exclusions if .distignore doesn't exist
+            rsync -av \
+              --exclude='.git*' \
+              --exclude='.github/' \
+              --exclude='node_modules/' \
+              --exclude='sass/' \
+              --exclude='*.scss' \
+              --exclude='package.json' \
+              --exclude='package-lock.json' \
+              --exclude='.distignore' \
+              --exclude='*.md' \
+              --exclude='*.map' \
+              ./ dist/${{ inputs.theme-name }}/
+          fi
+          
+          echo "Files copied to distribution:"
+          ls -la dist/${{ inputs.theme-name }}/
       
       - name: Create release ZIP
         run: |
