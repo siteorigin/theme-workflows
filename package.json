@@ -1,0 +1,27 @@
+{
+  "name": "theme-workflows",
+  "version": "1.0.0",
+  "description": "Reusable GitHub Actions workflows for WordPress theme builds",
+  "scripts": {
+    "test-workflow": "act push --env GITHUB_REF=refs/tags/v1.0.0",
+    "test-workflow-verbose": "act push --env GITHUB_REF=refs/tags/v1.0.0 -v",
+    "test-workflow-with-event": "act push -e test-event.json"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/siteorigin/theme-workflows.git"
+  },
+  "keywords": [
+    "github-actions",
+    "wordpress",
+    "theme",
+    "build",
+    "workflow",
+    "act"
+  ],
+  "author": "SiteOrigin",
+  "license": "MIT",
+  "devDependencies": {
+    "act": "^0.2.0"
+  }
+}

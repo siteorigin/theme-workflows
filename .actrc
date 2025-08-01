@@ -1,0 +1,20 @@
+# Act configuration for theme-workflows local testing
+# https://github.com/nektos/act
+
+# Use Ubuntu latest for consistency with GitHub Actions
+-P ubuntu-latest=catthehacker/ubuntu:act-latest
+
+# Set default secrets (override with --secret-file if needed)
+-s GITHUB_TOKEN=placeholder
+
+# Bind current working directory as workspace
+--bind
+
+# Set job timeout (default 5 minutes may be too short for builds)
+--job-timeout 10m
+
+# Use Docker host network for npm installs if needed
+# --use-gitignore=false
+
+# Enable verbose logging for debugging
+# -v

@@ -62,6 +62,51 @@ your-theme/
 └── ... (theme files)
 ```
 
+## Local Testing with Act
+
+You can test the workflow locally using [act](https://github.com/nektos/act) before pushing tags:
+
+### Setup
+
+1. **Install act:**
+   ```bash
+   # macOS
+   brew install act
+   
+   # Other platforms: see https://github.com/nektos/act#installation
+   ```
+
+2. **Test in your theme repository:**
+   ```bash
+   # Test the workflow locally (simulates tag push)
+   act push -e /path/to/test-event.json
+   
+   # Or test with a specific tag
+   act push --env GITHUB_REF=refs/tags/v1.0.0
+   ```
+
+3. **Create test event file** (optional, in your theme repo):
+   ```json
+   {
+     "ref": "refs/tags/v1.0.0",
+     "repository": {
+       "name": "your-theme-name"
+     }
+   }
+   ```
+
+### Benefits
+
+- ✅ Test SASS compilation locally
+- ✅ Debug workflow issues without creating releases  
+- ✅ Validate build process before pushing tags
+- ✅ Test `.distignore` file exclusions
+- ✅ Verify ZIP creation process
+
+### Configuration
+
+The `.actrc` file in this repository provides default settings optimized for theme builds. You can override these in your theme repository if needed.
+
 ## Updating
 
 To update the workflow for all themes, simply push changes to this repository. All themes using the workflow will automatically use the latest version on their next release.

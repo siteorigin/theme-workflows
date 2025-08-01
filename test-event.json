@@ -1,0 +1,28 @@
+{
+  "ref": "refs/tags/v1.0.0",
+  "repository": {
+    "name": "test-theme",
+    "full_name": "siteorigin/test-theme",
+    "owner": {
+      "login": "siteorigin"
+    }
+  },
+  "pusher": {
+    "name": "test-user"
+  },
+  "created": true,
+  "deleted": false,
+  "forced": false,
+  "base_ref": null,
+  "compare": "https://github.com/siteorigin/test-theme/compare/v1.0.0",
+  "commits": [],
+  "head_commit": {
+    "id": "abc123",
+    "message": "Test release v1.0.0",
+    "timestamp": "2025-08-01T12:00:00Z",
+    "author": {
+      "name": "Test User",
+      "email": "test@example.com"
+    }
+  }
+}
