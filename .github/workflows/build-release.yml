@@ -102,9 +102,9 @@ jobs:
       - name: Create release ZIP
         run: |
           cd dist
-          zip -r ../${{ inputs.theme-name }}-${{ steps.version.outputs.version }}.zip ${{ inputs.theme-name }}/
+          zip -r ../${{ inputs.theme-name }}.${{ steps.version.outputs.version }}.zip ${{ inputs.theme-name }}/
           cd ..
-          echo "Created: ${{ inputs.theme-name }}-${{ steps.version.outputs.version }}.zip"
+          echo "Created: ${{ inputs.theme-name }}.${{ steps.version.outputs.version }}.zip"
           ls -la *.zip
       
       - name: Generate changelog from commits
@@ -133,10 +133,10 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ github.ref }}
-          release_name: ${{ inputs.theme-name }} v${{ steps.version.outputs.version }}
+          release_name: ${{ steps.version.outputs.version }}
           body: ${{ steps.changelog.outputs.changelog }}
-          draft: false
-          prerelease: false
+          draft: ${{ contains(steps.version.outputs.version, 'beta') || contains(steps.version.outputs.version, 'alpha') || contains(steps.version.outputs.version, 'rc') }}
+          prerelease: ${{ contains(steps.version.outputs.version, 'beta') || contains(steps.version.outputs.version, 'alpha') || contains(steps.version.outputs.version, 'rc') }}
       
       - name: Upload Release Asset
         uses: actions/upload-release-asset@v1
@@ -144,12 +144,12 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./${{ inputs.theme-name }}-${{ steps.version.outputs.version }}.zip
-          asset_name: ${{ inputs.theme-name }}-${{ steps.version.outputs.version }}.zip
+          asset_path: ./${{ inputs.theme-name }}.${{ steps.version.outputs.version }}.zip
+          asset_name: ${{ inputs.theme-name }}.${{ steps.version.outputs.version }}.zip
           asset_content_type: application/zip
       
       - name: Output release info
         run: |
           echo "✅ Release created successfully!"
-          echo "📦 Asset: ${{ inputs.theme-name }}-${{ steps.version.outputs.version }}.zip"
+          echo "📦 Asset: ${{ inputs.theme-name }}.${{ steps.version.outputs.version }}.zip"
           echo "🔗 Release URL: ${{ steps.create_release.outputs.html_url }}"
