@@ -2,9 +2,11 @@
 
 This repository contains reusable GitHub Actions workflows for building and releasing WordPress themes.
 
-## Usage
+## Quick Setup for New Themes
 
-To use this workflow in your theme repository, create `.github/workflows/release.yml`:
+### Step 1: Create Workflow File
+
+Create `.github/workflows/release.yml` in your theme repository:
 
 ```yaml
 name: Release Theme
@@ -15,50 +17,150 @@ on:
 
 jobs:
   release:
-    uses: siteorigin/theme-workflows/.github/workflows/build-release.yml@main
+    uses: siteorigin/theme-workflows/.github/workflows/build-release.yml@master
     with:
-      theme-name: your-theme-name
+      theme-name: your-theme-name  # Replace with actual theme name
       node-version: '18'
-    secrets:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
+
+### Step 2: Create package.json
+
+```json
+{
+  "name": "your-theme-name",
+  "version": "1.0.0",
+  "description": "Build tools for Your Theme Name",
+  "scripts": {
+    "build": "npm run build:css && npm run build:js",
+    "build:css": "sass sass/style.scss:style.css --style=expanded --no-source-map",
+    "build:js": "npm run minify:js",
+    "minify:js": "find js -name '*.js' ! -name '*.min.js' -type f -exec sh -c 'terser \"$1\" --compress --mangle --output \"${1%.js}.min.js\"' _ {} \\;",
+    "test-release": "act push --env GITHUB_REF=refs/tags/v1.0.1"
+  },
+  "author": "SiteOrigin",
+  "license": "GPL-3.0",
+  "devDependencies": {
+    "sass": "^1.69.0",
+    "terser": "^5.24.0"
+  }
+}
+```
+
+### Step 3: Create .distignore
+
+```
+# Development files
+.git*
+.github/
+node_modules/
+package.json
+package-lock.json
+.distignore
+
+# Documentation
+*.md
+CONTRIBUTING.md
+CLAUDE.md
+
+# Development assets
+sass/
+*.scss
+*.map
+
+# Testing files
+tools/
+test-*
+*-test.php
+
+# Training/documentation
+theme-training/
+.claude/
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Build directories
+/dist
+/build
+```
+
+### Step 4: Test the Setup
+
+1. **Commit and push** the workflow files
+2. **Create a test tag**: `git tag v1.0.0-beta && git push origin v1.0.0-beta`
+3. **Check GitHub Actions**: Verify the workflow runs successfully
+4. **Check Releases**: Confirm the release is created with proper naming
+
+## Usage
 
 ## Requirements
 
 Your theme repository must have:
 
-1. **package.json** - Node.js dependencies and build scripts
-2. **gulpfile.js** - Build process (uses existing `build-config.js`)
-3. **.distignore** - Files to exclude from release ZIP
-4. **build-config.js** - Theme build configuration (existing)
+1. **package.json** - Node.js dependencies and build scripts (sass, terser)
+2. **.distignore** - Files to exclude from release ZIP
+3. **SASS files** (optional) - Will be compiled to CSS if `sass/style.scss` exists
+4. **JavaScript files** (optional) - Will be minified if `js/` directory exists
 
-## How it works
+## How Releases Work
 
-1. Push a version tag (e.g., `v1.20.12`)
-2. Workflow automatically:
-   - Builds theme assets (SASS, JS)
-   - Updates version in theme files
-   - Creates clean distribution ZIP
-   - Publishes to GitHub Releases
+1. **Push a version tag**: `git tag v1.0.5 && git push origin v1.0.5`
+2. **Workflow automatically**:
+   - Compiles SASS to CSS (if `sass/style.scss` exists)
+   - Minifies JavaScript files (if `js/` directory exists)
+   - Updates version number in `style.css`
+   - Creates clean distribution ZIP with excluded files
+   - Generates changelog from git commits
+   - Publishes GitHub release
+
+### Release Types
+
+- **Regular releases**: `v1.0.5` → Published immediately
+- **Beta releases**: `v1.0.5-beta` → Marked as prerelease
+- **Alpha releases**: `v1.0.5-alpha` → Marked as prerelease  
+- **Release candidates**: `v1.0.5-rc1` → Marked as prerelease
+
+### Release Naming
+
+- **Release name**: Just the version number (e.g., `1.0.5`)
+- **ZIP filename**: `theme-name.1.0.5.zip` (dot-separated)
+- **Folder in ZIP**: `theme-name/` (matches repository name)
 
 ## Features
 
-- ✅ No livereload or local dev features
-- ✅ Uses existing `build-config.js` structure
-- ✅ Automatic version detection from tags  
-- ✅ Clean release files (excludes source/dev files)
-- ✅ Reusable across all themes
-- ✅ Centralized workflow updates
+- ✅ **Clean release naming**: Release name = version number only (e.g., `1.0.5`)
+- ✅ **Dot-separated ZIP files**: `theme-name.1.0.5.zip` format
+- ✅ **Smart prerelease detection**: Auto-detects beta/alpha/rc versions
+- ✅ **SASS compilation**: Automatic compilation if `sass/style.scss` exists
+- ✅ **JavaScript minification**: Auto-minifies all JS files in `js/` directory
+- ✅ **Version updating**: Automatically updates version in `style.css`
+- ✅ **Clean release files**: Excludes source/dev files via `.distignore`
+- ✅ **Local testing**: Test workflows locally with `act`
+- ✅ **Reusable across themes**: Centralized workflow updates
+- ✅ **Auto-generated changelogs**: Creates changelogs from git commits
 
 ## File Structure
 
 ```
 your-theme/
 ├── .github/workflows/release.yml    # Calls reusable workflow
-├── package.json                     # Build dependencies
-├── gulpfile.js                      # Build process
+├── package.json                     # Build dependencies (sass, terser)
 ├── .distignore                      # Release exclusions
-├── build-config.js                  # Theme config (existing)
+├── sass/style.scss                  # Main SASS file (optional)
+├── js/                              # JavaScript files (optional)
 └── ... (theme files)
 ```
 
