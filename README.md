@@ -1,6 +1,6 @@
 # SiteOrigin Theme Workflows
 
-This repository contains reusable GitHub Actions workflows for building and releasing WordPress themes.
+Reusable GitHub Actions workflows for building and releasing SiteOrigin WordPress themes.
 
 ## Quick Setup for New Themes
 
