@@ -12,6 +12,10 @@ on:
         required: false
         type: string
         default: '18'
+    secrets:
+      GITHUB_TOKEN:
+        description: 'GitHub token for creating releases'
+        required: true
 
 jobs:
   build-and-release:
