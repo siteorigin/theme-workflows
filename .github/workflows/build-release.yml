@@ -135,7 +135,7 @@ jobs:
           tag_name: ${{ github.ref }}
           release_name: ${{ steps.version.outputs.version }}
           body: ${{ steps.changelog.outputs.changelog }}
-          draft: ${{ contains(steps.version.outputs.version, 'beta') || contains(steps.version.outputs.version, 'alpha') || contains(steps.version.outputs.version, 'rc') }}
+          draft: false
           prerelease: ${{ contains(steps.version.outputs.version, 'beta') || contains(steps.version.outputs.version, 'alpha') || contains(steps.version.outputs.version, 'rc') }}
       
       - name: Upload Release Asset
