@@ -13,7 +13,7 @@ name: Release Theme
 
 on:
   push:
-    tags: ['v*']
+    tags: ['[0-9]*.[0-9]*.[0-9]*']
 
 jobs:
   release:
@@ -35,7 +35,7 @@ jobs:
     "build:css": "sass sass/style.scss:style.css --style=expanded --no-source-map",
     "build:js": "npm run minify:js",
     "minify:js": "find js -name '*.js' ! -name '*.min.js' -type f -exec sh -c 'terser \"$1\" --compress --mangle --output \"${1%.js}.min.js\"' _ {} \\;",
-    "test-release": "act push --env GITHUB_REF=refs/tags/v1.0.1"
+    "test-release": "act push --env GITHUB_REF=refs/tags/1.0.1"
   },
   "author": "SiteOrigin",
   "license": "GPL-3.0",
@@ -101,7 +101,7 @@ Thumbs.db
 ### Step 4: Test the Setup
 
 1. **Commit and push** the workflow files
-2. **Create a test tag**: `git tag v1.0.0-beta && git push origin v1.0.0-beta`
+2. **Create a test tag**: `git tag 1.0.0-beta && git push origin 1.0.0-beta`
 3. **Check GitHub Actions**: Verify the workflow runs successfully
 4. **Check Releases**: Confirm the release is created with proper naming
 
@@ -118,7 +118,7 @@ Your theme repository must have:
 
 ## How Releases Work
 
-1. **Push a version tag**: `git tag v1.0.5 && git push origin v1.0.5`
+1. **Push a version tag**: `git tag 1.0.5 && git push origin 1.0.5`
 2. **Workflow automatically**:
    - Compiles SASS to CSS (if `sass/style.scss` exists)
    - Minifies JavaScript files (if `js/` directory exists)
@@ -129,10 +129,10 @@ Your theme repository must have:
 
 ### Release Types
 
-- **Regular releases**: `v1.0.5` → Published immediately
-- **Beta releases**: `v1.0.5-beta` → Marked as prerelease
-- **Alpha releases**: `v1.0.5-alpha` → Marked as prerelease  
-- **Release candidates**: `v1.0.5-rc1` → Marked as prerelease
+- **Regular releases**: `1.0.5` → Published immediately
+- **Beta releases**: `1.0.5-beta` → Marked as prerelease
+- **Alpha releases**: `1.0.5-alpha` → Marked as prerelease  
+- **Release candidates**: `1.0.5-rc1` → Marked as prerelease
 
 ### Release Naming
 
@@ -185,13 +185,13 @@ You can test the workflow locally using [act](https://github.com/nektos/act) bef
    act push -e /path/to/test-event.json
    
    # Or test with a specific tag
-   act push --env GITHUB_REF=refs/tags/v1.0.0
+   act push --env GITHUB_REF=refs/tags/1.0.0
    ```
 
 3. **Create test event file** (optional, in your theme repo):
    ```json
-   {
-     "ref": "refs/tags/v1.0.0",
+  {
+    "ref": "refs/tags/1.0.0",
      "repository": {
        "name": "your-theme-name"
      }

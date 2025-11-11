@@ -34,7 +34,8 @@ jobs:
       - name: Extract version from tag
         id: version
         run: |
-          VERSION=${GITHUB_REF#refs/tags/v}
+          VERSION=${GITHUB_REF#refs/tags/}
+          VERSION=${VERSION#v}
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Version: $VERSION"
       
@@ -122,7 +123,7 @@ jobs:
           # Create multiline output
           EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
           echo "changelog<<$EOF" >> $GITHUB_OUTPUT
-          echo "## Changes in v${{ steps.version.outputs.version }}" >> $GITHUB_OUTPUT
+          echo "## Changes in ${{ steps.version.outputs.version }}" >> $GITHUB_OUTPUT
           echo "" >> $GITHUB_OUTPUT
           echo "$CHANGELOG" >> $GITHUB_OUTPUT
           echo "$EOF" >> $GITHUB_OUTPUT
