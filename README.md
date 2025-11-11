@@ -56,6 +56,7 @@ node_modules/
 package.json
 package-lock.json
 .distignore
+bin/
 
 # Documentation
 *.md
